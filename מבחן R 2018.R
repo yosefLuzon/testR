@@ -6,7 +6,7 @@ any(is.na(testset))
 install.packages('Amelia')
 library(Amelia)
 missmap(testset,main = "missing values", col = c("yellow","brown"))
-testset$not.fully.paid<-as.factor(testset$not.fully.paid,levels=c("yes","no"))
+testset$not.fully.paid<-as.factor(testset$not.fully.paid)
 test$purpose<-as.Date.factor(test$purpose)
 install.packages("ggplot2")
 library(ggplot2)
@@ -37,7 +37,12 @@ plot(test$not.fully.paid,test$credit.policy)
  tree <- rpart(not.fully.paid ~ .,method = 'class' ,data = train)
  tree2 <- rpart(not.fully.paid ~ .,method = 'class' ,data = test)
  prp(tree2)
- 
+ pred<-predict(tree,test)
+ pred<-as.data.frame(pred)
+ xx<-function(x){
+   if(x>0.5){return('yes')}
+   else{return('no')}
+ }
  
  ####4
  install.packages('dplyr')
@@ -62,8 +67,14 @@ plot(test$not.fully.paid,test$credit.policy)
  install.packages('pROC')
  library(pROC)
  str(test)
- predictedlog<-predict(log.model.train,train,type='terms')
- rocCurve.rf<-roc(test$not.fully.paid,predictedlog[,'0'],levels =c("0","1"))
+ predictedlog<-predict(log.model.train,train,type='response')
+
+ xy<-function(x){
+   if(x==0){return('yes')}
+   else{return('no')
+   }}
+ test$not.fully.paid<-sapply(test$not.fully.paid,xy)
+ rocCurve.rf<-roc(predictedlog,test$not.fully.paid[,'yes'],levels =c("yes","no"))
  plot(rocCurve.rf,col="purple", main = "ROC chart")
  ###
 
